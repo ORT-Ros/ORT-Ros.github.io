@@ -27,7 +27,7 @@
 	</section>
 
 
-<div id="label-container"  class=""></div>
+<div id="label-container"  class="oculto"></div>
 
 <br/>
 <h3 style="padding-top: 10px">Objetos a encontrar</h3>
@@ -103,7 +103,7 @@
             labelContainer.childNodes[i].innerHTML = classPrediction;
 
 
-            if (prediction[i].probability.toFixed(2)>=.95) {
+            if (prediction[i].probability.toFixed(2)>=.65) {
 
                 if (prediction[i].className=="Bandera") {
                     document.getElementById("Bandera").innerHTML = '<i class="nes-icon is-medium like"></i>';
