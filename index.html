@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Búsqueda de Objetos</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css/css/nes.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
+</head>
+<body>
+	
+
+	<section class="showcase" id="contJuguemos">
+		<section class="nes-container with-title">
+			<h3 class="title">¡Juguemos!</h3> 
+			<div id="containers" class="item">
+				<p class="is-centered" id='mensaje'>Vas a tener que apuntar con la camara frontal la imagen de los siguientes objetos.<br/>Toca en INICIAR y hacelo lo antes posible!</p>
+				<span id='boton'><button type="button" class="nes-btn is-primary" onclick="init()">INICIAR</button></span>
+                <div id="webcam-container" class=""></div>
+			</div>
+		</section>
+	</section>
+
+
+<div id="label-container"  class="oculto"></div>
+
+<br/>
+<h3 style="padding-top: 10px">Objetos a encontrar</h3>
+<p><span id="Bandera"> </span>Bandera Argentina </p>
+<p><span id="Escarapela"> </span>Escarapela Argentina</p>
+<p><span id="Belgrano"> </span>Foto de Belgrano</p>
+<p><span id="Monumento"> </span> Foto del Monumento a la Bandera</p>
+<p><span id="LogORT"> </span> Logo de ORT</p>
+
+
+
+<h2 style="padding-top: 16px;" id="contTimer"><time>00:00:00</time></h2>
+
+<h2 id="listo"></h2>
+
+
+<footer>
+    <img src="img/logoORTFooter.png" style="max-height: 64px; padding: 5px;">
+</footer>
+
+<script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "https://teachablemachine.withgoogle.com/models/pchMaPdpd/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    // Load the image model and setup the webcam
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+        iniciarTimer();
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            labelContainer.appendChild(document.createElement("div"));
+        }
+    }
+
+    async function loop() {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+
+    var obj1=0, obj2=0, obj3=0, obj4=0, obj5=0;
+
+    // run the webcam image through the image model
+    async function predict() {
+        // predict can take in an image, video or canvas html element
+        const prediction = await model.predict(webcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
+
+
+            if (prediction[i].probability.toFixed(2)>=.95) {
+
+                if (prediction[i].className=="Bandera") {
+                    document.getElementById("Bandera").innerHTML = '<i class="nes-icon is-medium like"></i>';
+                    obj1=1;
+                }
+                if (prediction[i].className=="Escarapela") {
+                    document.getElementById("Escarapela").innerHTML = '<i class="nes-icon is-medium like"></i>';
+                    obj2=1;
+                }
+                if (prediction[i].className=="Belgrano") {
+                    document.getElementById("Belgrano").innerHTML = '<i class="nes-icon is-medium like"></i>';
+                    obj3=1;
+                }
+                if (prediction[i].className=="Monumento") {
+                    document.getElementById("Monumento").innerHTML = '<i class="nes-icon is-medium like"></i>';
+                    obj4=1;
+                }
+                if (prediction[i].className=="LogORT") {
+                    document.getElementById("LogORT").innerHTML = '<i class="nes-icon is-medium like"></i>';
+                    obj5=1;
+                }
+
+            }
+        }
+        
+        if (obj1==1 && obj2==1 && obj3==1 && obj4==1 && obj5==1) {
+            pararTimer();
+        }
+
+
+    }
+
+
+var h1 = document.getElementById('contTimer');
+//var start = document.getElementById('strt');
+//var stop = document.getElementById('stp');
+//var reset = document.getElementById('rst');
+var sec = 0;
+var min = 0;
+var hrs = 0;
+var t;
+
+
+
+function tick(){
+    sec++;
+    if (sec >= 60) {
+        sec = 0;
+        min++;
+        if (min >= 60) {
+            min = 0;
+            hrs++;
+        }
+    }
+}
+function add() {
+    tick();
+    h1.textContent = (hrs > 9 ? hrs : "0" + hrs) 
+             + ":" + (min > 9 ? min : "0" + min)
+             + ":" + (sec > 9 ? sec : "0" + sec);
+    timer();
+}
+function timer() {
+    t = setTimeout(add, 1000);
+}
+
+//timer();
+/*
+start.onclick = timer;
+stop.onclick = function() {
+    clearTimeout(t);
+}
+reset.onclick = function() {
+    h1.textContent = "00:00:00";
+    seconds = 0; minutes = 0; hours = 0;
+}
+*/
+    function pararTimer(){  clearTimeout(t); 
+
+        document.getElementById("listo").innerHTML = 'Felicitaciones!! Hacé una captura de pantalla y posteala en IG con @ort_rosario';
+
+    }
+    function iniciarTimer( ){ 
+        document.getElementById("mensaje").innerHTML = '';
+        document.getElementById("boton").innerHTML = '';
+        //document.getElementById("contJuguemos").innerHTML = '';
+
+        
+        timer();
+    }
+
+</script>
+
+
+</body>
+</html>
